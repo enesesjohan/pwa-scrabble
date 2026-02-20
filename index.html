@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+	<html lang=id>
+		<meta charset=UTF-8>
+		<meta content="width=device-width,initial-scale=1" name=viewport>
+		<title>Kamus Scrabble Offline</title>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel=stylesheet>
+		<style>
+:root {
+    --bg: #eaf2ff;       /* biru muda soft untuk background */
+    --card: #ffffff;      /* putih untuk card */
+    --text: #1f2937;      /* teks gelap untuk body text */
+    --muted: #6b7280;     /* teks muted */
+    --accent: #2563eb;    /* biru logo */
+    --success: #16a34a;   /* hijau untuk valid */
+    --danger: #dc2626;    /* merah untuk invalid */
+    --border: #e5e7eb;
+}
+
+
+		#bg {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: -1
+		}
+
+		body {
+			margin: 0;
+			font-family: Inter, sans-serif;
+			background: linear-gradient(180deg, #eaf2ff 0%, #ffffff 100%);
+			color: var(--text)
+		}
+.topbar {
+  text-align: center;
+  padding: 30px 20px 20px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.brandTitle {
+  font-size: 32px; 
+  font-weight: 800; 
+  letter-spacing: 2px; 
+  color: var(--accent);   /* biru logo */
+}
+
+.brandSub {
+  font-size: 14px; 
+  color: #2563eb; /* biru logo */
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+
+
+		.switchContainer {
+			margin-top: 15px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 12px;
+			font-size: 15px;
+			color: var(--muted)
+		}
+
+		.switch {
+			position: relative;
+			display: inline-block;
+			width: 46px;
+			height: 24px
+		}
+
+		.switch input {
+			opacity: 0;
+			width: 0;
+			height: 0
+		}
+
+		.slider {
+			position: absolute;
+			cursor: pointer;
+			inset: 0;
+			background-color: #d1d5db;
+			border-radius: 50px;
+			transition: .3s
+		}
+
+		.slider::before {
+			content: "";
+			position: absolute;
+			height: 18px;
+			width: 18px;
+			left: 3px;
+			bottom: 3px;
+			background-color: #fff;
+			border-radius: 50%;
+			transition: .3s
+		}
+
+		.switch input:checked+.slider {
+			    background-color: #2563eb; /* biru logo */
+
+		}
+
+		.switch input:checked+.slider::before {
+			transform: translateX(22px)
+		}
+
+		.container {
+			display: flex;
+			flex-direction: column;
+			gap: 25px;
+			padding: 20px;
+			max-width: 1000px;
+			margin: auto
+		}
+
+		.left,
+		.right {
+			background: #fff;
+			border: 1px solid #e5e7eb;
+			border-radius: 14px;
+			padding: 25px;
+			box-shadow: 0 8px 20px rgba(0, 0, 0, .06)
+		}
+
+		input {
+			width: 100%;
+			padding: 14px;
+			font-size: 20px;
+			border-radius: 10px;
+			border: 1px solid var(--border);
+			background: var(--card);
+			color: var(--text);
+			text-align: center;
+			outline: 0;
+			box-sizing: border-box;
+			transition: .2s
+		}
+
+		input:focus {
+			border-color: var(--accent);
+			box-shadow: 0 0 0 3px rgba(37, 99, 235, .1)
+		}
+
+		#result {
+			margin-top: 15px;
+			font-size: 30px;
+			font-weight: 700;
+			min-height: 40px
+		}
+
+		.valid {
+			color: #0040ff
+		}
+
+		.invalid {
+			color: var(--danger)
+		}
+
+		#word {
+			text-align: center;
+			font-size: 20px;
+			letter-spacing: 0;
+			margin-bottom: 0;
+			color: #1f2937
+		}
+
+		#wordTitle {
+			text-align: center;
+			font-size: 38px;
+			letter-spacing: 4px;
+			margin-bottom: 20px;
+			color: #1f2937
+		}
+
+		#tiles {
+			display: flex;
+			justify-content: center;
+			flex-wrap: wrap;
+			gap: 12px;
+			margin-top: 20px
+		}
+
+.tile {
+    width: 52px;
+    height: 52px;
+    background: #fff8e7; /* warna tile mirip Scrabble */
+    border: 1px solid #e2d7c6;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 20px;
+    color: #1f2937;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+    transition: all .2s ease;
+}
+
+.tile.high {
+    background: #fff389; /* highlight tile high score */
+    color: #000;
+    border-color: #2563eb; /* accent */
+}
+
+
+		.tile .letter {
+			position: relative;
+			top: 0;
+			left: 0;
+			right: 0;
+			color: #1f2937;
+			text-align: center;
+			font-size: 34px
+		}
+
+		.tile .point {
+			position: relative;
+			bottom: -15px;
+			right: -5px;
+			color: #dc2626;
+			font-size: 14px
+		}
+
+		#score {
+			margin-top: 20px;
+			font-size: 28px;
+			text-align: center;
+			font-weight: 700;
+			color: #0f8;
+			text-shadow: 0 0 15px #0f8
+		}
+
+		#meaning {
+			background: #fff;
+			border: 1px solid #e5e7eb;
+			padding: 20px;
+			border-radius: 10px;
+			font-size: 16px;
+			line-height: 1.6;
+			color: #374151
+		}
+
+		@keyframes glowGreen {
+			from {
+				transform: scale(.9)
+			}
+
+			to {
+				transform: scale(1)
+			}
+		}
+
+		@keyframes flashRed {
+			0% {
+				opacity: 0
+			}
+
+			100% {
+				opacity: 1
+			}
+		}
+
+		@keyframes dropIn {
+			from {
+				transform: translateY(-15px);
+				opacity: 0
+			}
+
+			to {
+				transform: translateY(0);
+				opacity: 1
+			}
+		}
+
+		@media(min-width:900px) {
+			.container {
+				flex-direction: row
+			}
+
+			.left {
+				width: 40%
+			}
+
+			.right {
+				width: 60%
+			}
+		}
+
+		.timerPanel {
+			background: var(--card);
+			display: none;
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			padding: 20px;
+			margin-bottom: 20px
+		}
+
+		.timerRow {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 12px 15px;
+			margin-bottom: 8px;
+			border-radius: 12px;
+			font-family: monospace;
+			font-size: 20px;
+			letter-spacing: 2px;
+			transition: .3s ease
+		}
+
+		.playerLabel {
+			opacity: .7;
+			font-size: 20px
+		}
+
+		.timeValue {
+			font-size: 24px;
+			font-weight: 700
+		}
+
+		.playerActive {
+			border-left: 4px solid var(--accent);
+			background: rgba(37, 99, 235, .05)
+		}
+
+		.playerInactive {
+			opacity: .6
+		}
+
+		.turnRow {
+			text-align: center;
+			margin-top: 10px;
+			padding-top: 10px;
+			font-family: monospace;
+			font-size: 18px;
+			letter-spacing: 3px;
+			color: #148450
+		}
+
+		.turnBar {
+			width: 100%;
+			height: 8px;
+			background: rgba(255, 255, 255, .1);
+			border-radius: 10px;
+			margin-top: 10px;
+			overflow: hidden
+		}
+
+		#turnProgress {
+			height: 100%;
+			width: 100%;
+			background: #2563eb;
+			transition: width 1s linear
+		}
+
+		.turnWarning {
+			color: #fa0 !important;
+			text-shadow: 0 0 10px #fa0
+		}
+
+		.turnDanger {
+			color: #ff3b3b !important;
+			text-shadow: 0 0 15px #ff3b3b;
+			animation: pulse .6s infinite
+		}
+
+		@keyframes pulse {
+			0% {
+				transform: scale(1)
+			}
+
+			50% {
+				transform: scale(1.08)
+			}
+
+			100% {
+				transform: scale(1)
+			}
+		}
+
+		#resultBox {
+			margin-top: 15px;
+			font-size: 28px;
+			font-weight: 700;
+			min-height: 40px;
+			display: flex;
+			align-items: center;
+			gap: 15px
+		}
+
+		.valid {
+			color: #16a34a;
+			font-weight: 600;
+      align-items: center;
+		}
+
+		#resultText.invalid {
+			color: #ff3b3b;
+			text-shadow: 0 0 15px #ff3b3b
+		}
+
+#pointBadge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    background: #2563eb;  /* biru logo */
+    color: #fff;          /* putih teks */
+    border: 1px solid #e5e7eb;
+    font-weight: 600;
+}
+
+
+		@keyframes shakeScreen {
+			0% {
+				transform: translate(0, 0)
+			}
+
+			25% {
+				transform: translate(-5px, 3px)
+			}
+
+			50% {
+				transform: translate(5px, -3px)
+			}
+
+			75% {
+				transform: translate(-4px, 2px)
+			}
+
+			100% {
+				transform: translate(0, 0)
+			}
+		}
+
+		.shake {
+			animation: shakeScreen .3s infinite
+		}
+		</style>
+<body>
+
+    <div class="topbar">
+  <div class="brandTitle">AL-FURQON SCRABBLE</div>
+  <div class="brandSub">Offline Dictionary System</div>
+</div>
+
+		<div class=switchContainer><span class=switchLabel>⚡ Game Mode</span> <label class=switch><input id=gameSwitch type=checkbox> <span class=slider></span></label></div>
+		<div class=container>
+			<div class=timerPanel id=timerPanel>
+				<div class=timerRow id=playerABox><span class=playerLabel>⏱ PLAYER A</span><span class=timeValue id=timeA>25:00</span></div>
+				<div class=timerRow id=playerBBox><span class=playerLabel>⏱ PLAYER B</span> <span class=timeValue id=timeB>25:00</span></div>
+				<div class=turnRow>TURN <span id=turnTime>02:00</span>
+					<div class=turnBar>
+						<div id=turnProgress></div>
+					</div>
+				</div>
+			</div>
+			<div class=left>
+				<div class=searchbox><input id=word autofocus placeholder="Search Here">
+					<div id=resultBox><span id=resultText></span> <span id=pointBadge></span></div>
+				</div>
+				<div id=tiles></div>
+				<div id=score></div>
+			</div>
+			<div class=right>
+				<h2 id=wordTitle>-</h2>
+				<div id=meaning></div>
+			</div>
+		</div>
+		<script src=dict.js></script>
+		<script src=app.js></script>
+
+    </body>
+</html>
