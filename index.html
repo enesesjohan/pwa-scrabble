@@ -1,477 +1,562 @@
 <!DOCTYPE html>
-	<html lang=id>
-		<meta charset=UTF-8>
-		<meta content="width=device-width,initial-scale=1" name=viewport>
-		<title>Kamus Scrabble Offline</title>
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel=stylesheet>
-		<style>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kamus Scrabble Offline</title>
+
+<!-- Apple HIG Typography: SF Pro (fallback Inter) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome 6 (icon set, bukan emoji) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+
+<style>
+/* ============================================================
+   DESIGN LANGUAGE — Apple Human Interface Guidelines
+   - Sistem warna semantik iOS (systemBlue / Green / Orange / Red)
+   - Material layering: grouped background + elevated cards
+   - Tipografi: SF Pro / Inter, Dynamic Type scale
+   - Transisi: spring easing khas iOS
+   - Kontrol: iOS switch, rounded rect, safe-area insets
+   ============================================================ */
 :root {
-    --bg: #eaf2ff;       /* biru muda soft untuk background */
-    --card: #ffffff;      /* putih untuk card */
-    --text: #1f2937;      /* teks gelap untuk body text */
-    --muted: #6b7280;     /* teks muted */
-    --accent: #2563eb;    /* biru logo */
-    --success: #16a34a;   /* hijau untuk valid */
-    --danger: #dc2626;    /* merah untuk invalid */
-    --border: #e5e7eb;
+    /* iOS system colors (light appearance) */
+    --ios-blue:   #007aff;
+    --ios-green:  #34c759;
+    --ios-orange: #ff9f0a;
+    --ios-red:    #ff3b30;
+    --ios-gray:   #8e8e93;
+
+    /* Label colors */
+    --label:      #1c1c1e;
+    --label-2:    #3a3a3c;
+    --secondary-label: rgba(60, 60, 67, .6);
+    --tertiary-label:  rgba(60, 60, 67, .3);
+
+    /* Backgrounds (grouped) */
+    --bg-grouped: #f2f2f7;          /* iOS systemGroupedBackground */
+    --card:       #ffffff;          /* secondarySystemGroupedBackground */
+    --fill:       rgba(120, 120, 128, .12);
+    --separator:  rgba(60, 60, 67, .18);
+
+    /* Radius & elevation ala iOS */
+    --radius-card: 18px;
+    --radius-ctrl: 12px;
+    --shadow-card: 0 1px 3px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+
+    /* Spring easing khas Apple */
+    --spring: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+* { box-sizing: border-box; }
 
-		#bg {
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			z-index: -1
-		}
+html { -webkit-text-size-adjust: 100%; }
 
-		body {
-			margin: 0;
-			font-family: Inter, sans-serif;
-			background: linear-gradient(180deg, #eaf2ff 0%, #ffffff 100%);
-			color: var(--text)
-		}
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+                 "Inter", "Helvetica Neue", sans-serif;
+    background: var(--bg-grouped);
+    color: var(--label);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+}
+
+/* ---------- Navigation bar ala iOS (large title) ---------- */
 .topbar {
-  text-align: center;
-  padding: 30px 20px 20px;
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    text-align: center;
+    padding: calc(14px + env(safe-area-inset-top)) 20px 14px;
+    background: rgba(242, 242, 247, .82);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: .5px solid var(--separator);
 }
 
 .brandTitle {
-  font-size: 32px; 
-  font-weight: 800; 
-  letter-spacing: 2px; 
-  color: var(--accent);   /* biru logo */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--label);
+}
+
+.brandTitle i {
+    color: var(--ios-blue);
+    font-size: 22px;
 }
 
 .brandSub {
-  font-size: 14px; 
-  color: #2563eb; /* biru logo */
-  font-weight: 600;
-  margin-top: 4px;
+    font-size: 13px;
+    color: var(--secondary-label);
+    font-weight: 500;
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
 }
 
+/* ---------- iOS-style Switch row ---------- */
+.switchContainer {
+    max-width: 1000px;
+    margin: 20px auto 0;
+    padding: 0 20px;
+    display: flex;
+}
 
+.switchCard {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card);
+    border-radius: var(--radius-card);
+    padding: 14px 18px;
+    box-shadow: var(--shadow-card);
+}
 
-		.switchContainer {
-			margin-top: 15px;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			gap: 12px;
-			font-size: 15px;
-			color: var(--muted)
-		}
+.switchLabel {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 17px;           /* iOS body */
+    font-weight: 400;
+    color: var(--label);
+}
 
-		.switch {
-			position: relative;
-			display: inline-block;
-			width: 46px;
-			height: 24px
-		}
+.switchLabel .icon-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 122, 255, .12);
+    color: var(--ios-blue);
+    font-size: 14px;
+}
 
-		.switch input {
-			opacity: 0;
-			width: 0;
-			height: 0
-		}
+/* Toggle saklar persis iOS UISwitch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 51px;
+    height: 31px;
+    flex-shrink: 0;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: rgba(120, 120, 128, .32);
+    border-radius: 31px;
+    transition: background-color .35s var(--spring);
+}
+.slider::before {
+    content: "";
+    position: absolute;
+    height: 27px;
+    width: 27px;
+    left: 2px;
+    top: 2px;
+    background-color: #fff;
+    border-radius: 50%;
+    box-shadow: 0 3px 8px rgba(0,0,0,.15), 0 1px 1px rgba(0,0,0,.06);
+    transition: transform .35s var(--spring), width .2s ease;
+}
+.slider:active::before { width: 31px; }              /* efek drag iOS */
+.switch input:checked + .slider { background-color: var(--ios-green); }
+.switch input:checked + .slider::before { transform: translateX(20px); }
 
-		.slider {
-			position: absolute;
-			cursor: pointer;
-			inset: 0;
-			background-color: #d1d5db;
-			border-radius: 50px;
-			transition: .3s
-		}
+/* ---------- Layout utama ---------- */
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom));
+    max-width: 1000px;
+    margin: auto;
+}
 
-		.slider::before {
-			content: "";
-			position: absolute;
-			height: 18px;
-			width: 18px;
-			left: 3px;
-			bottom: 3px;
-			background-color: #fff;
-			border-radius: 50%;
-			transition: .3s
-		}
+.left, .right {
+    background: var(--card);
+    border-radius: var(--radius-card);
+    padding: 25px;
+    box-shadow: var(--shadow-card);
+}
 
-		.switch input:checked+.slider {
-			    background-color: #2563eb; /* biru logo */
+/* ---------- Search field (iOS search style) ---------- */
+.searchbox { position: relative; }
 
-		}
+#word {
+    width: 100%;
+    padding: 14px 16px 14px 44px;
+    font-size: 17px;
+    border-radius: 10px;
+    border: none;
+    background: var(--fill);
+    color: var(--label);
+    outline: 0;
+    transition: background .25s ease, box-shadow .25s ease;
+}
+#word::placeholder { color: var(--tertiary-label); }
+#word:focus {
+    background: var(--card);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, .25);
+}
+.search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--tertiary-label);
+    font-size: 15px;
+    pointer-events: none;
+    transition: color .25s ease;
+}
+#word:focus ~ .search-icon { color: var(--ios-blue); }
 
-		.switch input:checked+.slider::before {
-			transform: translateX(22px)
-		}
+/* ---------- Hasil valid / invalid ---------- */
+#resultBox {
+    margin-top: 15px;
+    font-size: 24px;
+    font-weight: 700;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
-		.container {
-			display: flex;
-			flex-direction: column;
-			gap: 25px;
-			padding: 20px;
-			max-width: 1000px;
-			margin: auto
-		}
+#resultText { display: inline-flex; align-items: center; gap: 10px; }
+#resultText i { font-size: 22px; }
 
-		.left,
-		.right {
-			background: #fff;
-			border: 1px solid #e5e7eb;
-			border-radius: 14px;
-			padding: 25px;
-			box-shadow: 0 8px 20px rgba(0, 0, 0, .06)
-		}
+.valid   { color: var(--ios-green); }
+.invalid { color: var(--ios-red); }
 
-		input {
-			width: 100%;
-			padding: 14px;
-			font-size: 20px;
-			border-radius: 10px;
-			border: 1px solid var(--border);
-			background: var(--card);
-			color: var(--text);
-			text-align: center;
-			outline: 0;
-			box-sizing: border-box;
-			transition: .2s
-		}
+#pointBadge {
+    padding: 5px 12px;
+    border-radius: 999px;                       /* capsule ala iOS */
+    font-size: 13px;
+    font-weight: 600;
+    background: rgba(0, 122, 255, .12);
+    color: var(--ios-blue);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
 
-		input:focus {
-			border-color: var(--accent);
-			box-shadow: 0 0 0 3px rgba(37, 99, 235, .1)
-		}
-
-		#result {
-			margin-top: 15px;
-			font-size: 30px;
-			font-weight: 700;
-			min-height: 40px
-		}
-
-		.valid {
-			color: #0040ff
-		}
-
-		.invalid {
-			color: var(--danger)
-		}
-
-		#word {
-			text-align: center;
-			font-size: 20px;
-			letter-spacing: 0;
-			margin-bottom: 0;
-			color: #1f2937
-		}
-
-		#wordTitle {
-			text-align: center;
-			font-size: 38px;
-			letter-spacing: 4px;
-			margin-bottom: 20px;
-			color: #1f2937
-		}
-
-		#tiles {
-			display: flex;
-			justify-content: center;
-			flex-wrap: wrap;
-			gap: 12px;
-			margin-top: 20px
-		}
+/* ---------- Tiles huruf ---------- */
+#tiles {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+}
 
 .tile {
     width: 52px;
     height: 52px;
-    background: #fff8e7; /* warna tile mirip Scrabble */
-    border: 1px solid #e2d7c6;
-    border-radius: 8px;
+    background: linear-gradient(180deg, #fdf6e3 0%, #f7ecd2 100%);
+    border: .5px solid #e2d7c6;
+    border-radius: 10px;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-weight: 700;
-    font-size: 20px;
-    color: #1f2937;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.12);
-    transition: all .2s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,.10), inset 0 1px 0 rgba(255,255,255,.7);
+    animation: tileDrop .45s var(--spring) both;
 }
 
 .tile.high {
-    background: #fff389; /* highlight tile high score */
-    color: #000;
-    border-color: #2563eb; /* accent */
+    background: linear-gradient(180deg, #fff3b0 0%, #ffe27a 100%);
+    border-color: var(--ios-orange);
 }
 
+.tile .letter {
+    color: var(--label);
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 1;
+}
 
-		.tile .letter {
-			position: relative;
-			top: 0;
-			left: 0;
-			right: 0;
-			color: #1f2937;
-			text-align: center;
-			font-size: 34px
-		}
-
-		.tile .point {
-			position: relative;
-			bottom: -15px;
-			right: -5px;
-			color: #dc2626;
-			font-size: 14px
-		}
-
-		#score {
-			margin-top: 20px;
-			font-size: 28px;
-			text-align: center;
-			font-weight: 700;
-			color: #0f8;
-			text-shadow: 0 0 15px #0f8
-		}
-
-		#meaning {
-			background: #fff;
-			border: 1px solid #e5e7eb;
-			padding: 20px;
-			border-radius: 10px;
-			font-size: 16px;
-			line-height: 1.6;
-			color: #374151
-		}
-
-		@keyframes glowGreen {
-			from {
-				transform: scale(.9)
-			}
-
-			to {
-				transform: scale(1)
-			}
-		}
-
-		@keyframes flashRed {
-			0% {
-				opacity: 0
-			}
-
-			100% {
-				opacity: 1
-			}
-		}
-
-		@keyframes dropIn {
-			from {
-				transform: translateY(-15px);
-				opacity: 0
-			}
-
-			to {
-				transform: translateY(0);
-				opacity: 1
-			}
-		}
-
-		@media(min-width:900px) {
-			.container {
-				flex-direction: row
-			}
-
-			.left {
-				width: 40%
-			}
-
-			.right {
-				width: 60%
-			}
-		}
-
-		.timerPanel {
-			background: var(--card);
-			display: none;
-			border: 1px solid var(--border);
-			border-radius: 12px;
-			padding: 20px;
-			margin-bottom: 20px
-		}
-
-		.timerRow {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			padding: 12px 15px;
-			margin-bottom: 8px;
-			border-radius: 12px;
-			font-family: monospace;
-			font-size: 20px;
-			letter-spacing: 2px;
-			transition: .3s ease
-		}
-
-		.playerLabel {
-			opacity: .7;
-			font-size: 20px
-		}
-
-		.timeValue {
-			font-size: 24px;
-			font-weight: 700
-		}
-
-		.playerActive {
-			border-left: 4px solid var(--accent);
-			background: rgba(37, 99, 235, .05)
-		}
-
-		.playerInactive {
-			opacity: .6
-		}
-
-		.turnRow {
-			text-align: center;
-			margin-top: 10px;
-			padding-top: 10px;
-			font-family: monospace;
-			font-size: 18px;
-			letter-spacing: 3px;
-			color: #148450
-		}
-
-		.turnBar {
-			width: 100%;
-			height: 8px;
-			background: rgba(255, 255, 255, .1);
-			border-radius: 10px;
-			margin-top: 10px;
-			overflow: hidden
-		}
-
-		#turnProgress {
-			height: 100%;
-			width: 100%;
-			background: #2563eb;
-			transition: width 1s linear
-		}
-
-		.turnWarning {
-			color: #fa0 !important;
-			text-shadow: 0 0 10px #fa0
-		}
-
-		.turnDanger {
-			color: #ff3b3b !important;
-			text-shadow: 0 0 15px #ff3b3b;
-			animation: pulse .6s infinite
-		}
-
-		@keyframes pulse {
-			0% {
-				transform: scale(1)
-			}
-
-			50% {
-				transform: scale(1.08)
-			}
-
-			100% {
-				transform: scale(1)
-			}
-		}
-
-		#resultBox {
-			margin-top: 15px;
-			font-size: 28px;
-			font-weight: 700;
-			min-height: 40px;
-			display: flex;
-			align-items: center;
-			gap: 15px
-		}
-
-		.valid {
-			color: #16a34a;
-			font-weight: 600;
-      align-items: center;
-		}
-
-		#resultText.invalid {
-			color: #ff3b3b;
-			text-shadow: 0 0 15px #ff3b3b
-		}
-
-#pointBadge {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    background: #2563eb;  /* biru logo */
-    color: #fff;          /* putih teks */
-    border: 1px solid #e5e7eb;
+.tile .point {
+    color: var(--ios-red);
+    font-size: 11px;
     font-weight: 600;
+    margin-top: 3px;
+    line-height: 1;
 }
 
+@keyframes tileDrop {
+    from { transform: translateY(-14px) scale(.85); opacity: 0; }
+    to   { transform: translateY(0)    scale(1);   opacity: 1; }
+}
 
-		@keyframes shakeScreen {
-			0% {
-				transform: translate(0, 0)
-			}
+#score {
+    margin-top: 20px;
+    font-size: 22px;
+    text-align: center;
+    font-weight: 700;
+    color: var(--ios-green);
+}
 
-			25% {
-				transform: translate(-5px, 3px)
-			}
+/* ---------- Panel arti kata ---------- */
+#wordTitle {
+    text-align: center;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px;
+    color: var(--label);
+    animation: fadeSlideUp .4s var(--spring) both;
+}
 
-			50% {
-				transform: translate(5px, -3px)
-			}
+.meaningHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--secondary-label);
+    margin-bottom: 8px;
+}
+.meaningHeader i { color: var(--ios-blue); }
 
-			75% {
-				transform: translate(-4px, 2px)
-			}
+#meaning {
+    background: var(--bg-grouped);
+    border: none;
+    padding: 16px;
+    border-radius: var(--radius-ctrl);
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--label-2);
+    min-height: 54px;
+    animation: fadeSlideUp .4s var(--spring) both;
+}
 
-			100% {
-				transform: translate(0, 0)
-			}
-		}
+@keyframes fadeSlideUp {
+    from { transform: translateY(8px); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+}
 
-		.shake {
-			animation: shakeScreen .3s infinite
-		}
-		</style>
+/* ---------- Timer panel (game mode) ---------- */
+.timerPanel {
+    background: var(--card);
+    display: none;
+    border-radius: var(--radius-card);
+    padding: 16px;
+    box-shadow: var(--shadow-card);
+    animation: fadeSlideUp .35s var(--spring) both;
+}
+
+.timerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: var(--radius-ctrl);
+    background: var(--bg-grouped);
+    font-variant-numeric: tabular-nums;
+    transition: background .3s ease, box-shadow .3s ease;
+}
+
+.playerLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--secondary-label);
+}
+.playerLabel i { color: var(--ios-gray); }
+
+.timeValue {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--label);
+}
+
+.playerActive {
+    background: rgba(0, 122, 255, .08);
+    box-shadow: inset 0 0 0 1.5px var(--ios-blue);
+}
+.playerActive .playerLabel, .playerActive .playerLabel i { color: var(--ios-blue); }
+
+.playerInactive { opacity: .55; }
+
+.turnRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--secondary-label);
+}
+.turnRow i { color: var(--ios-orange); }
+#turnTime { font-size: 18px; font-weight: 700; color: var(--label); }
+
+.turnBar {
+    width: 100%;
+    height: 6px;
+    background: var(--fill);
+    border-radius: 999px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+#turnProgress {
+    height: 100%;
+    width: 100%;
+    background: var(--ios-green);
+    border-radius: 999px;
+    transition: width 1s linear, background .4s ease;
+}
+
+.turnWarning, .turnWarning ~ * { color: var(--ios-orange) !important; }
+.turnDanger  { color: var(--ios-red) !important; animation: pulse .8s ease-in-out infinite; }
+
+@keyframes pulse {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+
+/* ---------- Feedback invalid ---------- */
+@keyframes shakeScreen {
+    0%,100% { transform: translate(0,0); }
+    25%     { transform: translate(-5px,0); }
+    50%     { transform: translate(5px,0); }
+    75%     { transform: translate(-3px,0); }
+}
+.shake { animation: shakeScreen .3s ease; }
+
+/* ---------- Responsive ---------- */
+@media (min-width: 900px) {
+    .container { flex-direction: row; align-items: flex-start; }
+    .left  { width: 40%; }
+    .right { width: 60%; }
+    .timerPanel { display: none; }
+    .timerPanel.visible { display: block; }
+}
+
+/* ---------- Dark mode otomatis (iOS elevated dark) ---------- */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-grouped: #000000;
+        --card:       #1c1c1e;
+        --label:      #ffffff;
+        --label-2:    #e5e5ea;
+        --secondary-label: rgba(235, 235, 245, .6);
+        --tertiary-label:  rgba(235, 235, 245, .3);
+        --fill:       rgba(120, 120, 128, .24);
+        --separator:  rgba(84, 84, 88, .6);
+        --shadow-card: none;
+    }
+    .topbar { background: rgba(0,0,0,.72); }
+    .tile {
+        background: linear-gradient(180deg, #3a3325 0%, #2c271c 100%);
+        border-color: #4a4234;
+        box-shadow: 0 4px 10px rgba(0,0,0,.4);
+    }
+    .tile .letter { color: #f2e8cf; }
+    .tile.high { background: linear-gradient(180deg, #4d4218 0%, #3d3412 100%); }
+    #meaning { background: #2c2c2e; color: var(--label-2); }
+    .timerRow { background: #2c2c2e; }
+}
+
+/* Hormati Reduce Motion (aksesibilitas HIG) */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+    }
+}
+</style>
+</head>
 <body>
 
-    <div class="topbar">
-  <div class="brandTitle">AL-FURQON SCRABBLE</div>
-  <div class="brandSub">Offline Dictionary System</div>
+<div class="topbar">
+    <div class="brandTitle">
+        <i class="fa-solid fa-table-cells-large" aria-hidden="true"></i>
+        AL-FURQON SCRABBLE
+    </div>
+    <div class="brandSub">Offline Dictionary System</div>
 </div>
 
-		<div class=switchContainer><span class=switchLabel>⚡ Game Mode</span> <label class=switch><input id=gameSwitch type=checkbox> <span class=slider></span></label></div>
-		<div class=container>
-			<div class=timerPanel id=timerPanel>
-				<div class=timerRow id=playerABox><span class=playerLabel>⏱ PLAYER A</span><span class=timeValue id=timeA>25:00</span></div>
-				<div class=timerRow id=playerBBox><span class=playerLabel>⏱ PLAYER B</span> <span class=timeValue id=timeB>25:00</span></div>
-				<div class=turnRow>TURN <span id=turnTime>02:00</span>
-					<div class=turnBar>
-						<div id=turnProgress></div>
-					</div>
-				</div>
-			</div>
-			<div class=left>
-				<div class=searchbox><input id=word autofocus placeholder="Search Here">
-					<div id=resultBox><span id=resultText></span> <span id=pointBadge></span></div>
-				</div>
-				<div id=tiles></div>
-				<div id=score></div>
-			</div>
-			<div class=right>
-				<h2 id=wordTitle>-</h2>
-				<div id=meaning></div>
-			</div>
-		</div>
-		<script src=dict.js></script>
-		<script src=app.js></script>
+<div class="switchContainer">
+    <div class="switchCard">
+        <span class="switchLabel">
+            <span class="icon-badge"><i class="fa-solid fa-bolt" aria-hidden="true"></i></span>
+            Game Mode
+        </span>
+        <label class="switch">
+            <input id="gameSwitch" type="checkbox" aria-label="Aktifkan Game Mode">
+            <span class="slider"></span>
+        </label>
+    </div>
+</div>
 
-    </body>
+<div class="container">
+
+    <div class="timerPanel" id="timerPanel">
+        <div class="timerRow" id="playerABox">
+            <span class="playerLabel"><i class="fa-solid fa-user" aria-hidden="true"></i> PLAYER A</span>
+            <span class="timeValue" id="timeA">25:00</span>
+        </div>
+        <div class="timerRow" id="playerBBox">
+            <span class="playerLabel"><i class="fa-solid fa-user" aria-hidden="true"></i> PLAYER B</span>
+            <span class="timeValue" id="timeB">25:00</span>
+        </div>
+        <div class="turnRow">
+            <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+            TURN <span id="turnTime">02:00</span>
+        </div>
+        <div class="turnBar">
+            <div id="turnProgress"></div>
+        </div>
+    </div>
+
+    <div class="left">
+        <div class="searchbox">
+            <input id="word" autofocus placeholder="Search word…" autocomplete="off" spellcheck="false">
+            <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+        </div>
+        <div id="resultBox">
+            <span id="resultText"></span>
+            <span id="pointBadge"></span>
+        </div>
+        <div id="tiles"></div>
+        <div id="score"></div>
+    </div>
+
+    <div class="right">
+        <h2 id="wordTitle">-</h2>
+        <div class="meaningHeader">
+            <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+            Definition
+        </div>
+        <div id="meaning"></div>
+    </div>
+
+</div>
+
+<script src="dict.js"></script>
+<script src="app.js"></script>
+</body>
 </html>
