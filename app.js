@@ -1,3 +1,10 @@
+/* ============================================================
+   AL-FURQON SCRABBLE — app.js
+   Desain interaksi mengikuti Apple Human Interface Guidelines:
+   - Feedback instan dengan ikon Font Awesome (tanpa emoji)
+   - Animasi spring / staggered yang halus
+   - Haptic-style micro interaction (shake ringan saat invalid)
+   ============================================================ */
 
 const input = document.getElementById("word"),
 
@@ -8,7 +15,7 @@ const input = document.getElementById("word"),
     wordTitle = document.getElementById("wordTitle"),
     tilesBox = document.getElementById("tiles"),
     soundValid = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"),
-    
+
     soundInvalid = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"),
     buzzerSound = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"),
     playerABox = document.getElementById("playerABox"),
@@ -42,6 +49,32 @@ const input = document.getElementById("word"),
         z: 10
     };
 
+/* ---------- Ikon Font Awesome untuk feedback (bukan emoji) ---------- */
+const ICON_VALID   = '<i class="fa-solid fa-circle-check" aria-hidden="true"></i>';
+const ICON_INVALID = '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>';
+const ICON_POINT   = '<i class="fa-solid fa-star" aria-hidden="true"></i>';
+
+/* Helper: set hasil valid/invalid dengan ikon + animasi muncul */
+function showResult(valid, message) {
+    resultText.className = valid ? "valid" : "invalid";
+    resultText.innerHTML = (valid ? ICON_VALID : ICON_INVALID) + " " + message;
+    // Restart animasi fade ala iOS
+    resultText.style.animation = "none";
+    void resultText.offsetWidth; // reflow
+    resultText.style.animation = "fadeSlideUp .35s var(--spring) both";
+}
+
+/* Helper: reset seluruh panel hasil */
+function resetPanels() {
+    resultText.textContent = "";
+    resultText.className = "";
+    meaning.textContent = "";
+    scoreBox.textContent = "";
+    tilesBox.innerHTML = "";
+    wordTitle.textContent = "-";
+    pointBadge.style.display = "none";
+}
+
 function exists(t) {
     t = t.toLowerCase();
     const e = DICT[t.length];
@@ -62,22 +95,24 @@ function renderScore(t) {
         const i = SCORE[n] || 0;
         e += i, setTimeout((() => {
             const l = document.createElement("div");
-            l.className = "tile", i >= 8 && l.classList.add("high"), l.innerHTML = `\n        <div class="letter">${n.toUpperCase()}</div>\n        <div class="point">${i}</div>\n      `, tilesBox.appendChild(l), a === t.length - 1 && (pointBadge.textContent = e + " POINT")
+            l.className = "tile", i >= 8 && l.classList.add("high"), l.innerHTML = `\n        <div class="letter">${n.toUpperCase()}</div>\n        <div class="point">${i}</div>\n      `, tilesBox.appendChild(l), a === t.length - 1 && (
+                pointBadge.innerHTML = ICON_POINT + " " + e + " POINT",
+                pointBadge.style.display = "inline-flex",
+                pointBadge.style.animation = "none",
+                void pointBadge.offsetWidth,
+                pointBadge.style.animation = "fadeSlideUp .35s var(--spring) both"
+            )
         }), 90 * a)
     }))
 }
+
 input.addEventListener("keydown", function(t) {
     if (t.key !== "Enter") return;
 
     const e = input.value.trim().toLowerCase();
     // Saat input kosong → reset semua dan sembunyikan pointBadge
     if (!e) {
-        resultText.textContent = "";
-        meaning.textContent = "";
-        scoreBox.textContent = "";
-        tilesBox.innerHTML = "";
-        wordTitle.textContent = "-";
-        pointBadge.style.display = "none"; // hide pointBadge
+        resetPanels();
         return;
     }
 
@@ -85,8 +120,7 @@ input.addEventListener("keydown", function(t) {
     const isGameMode = gameSwitch.checked; // cek apakah game mode aktif
 
     if (exists(e)) {
-        resultText.textContent = "VALID";
-        resultText.className = "valid";
+        showResult(true, "VALID");
         soundValid.currentTime = 0;
         soundValid.play();
 
@@ -94,23 +128,26 @@ input.addEventListener("keydown", function(t) {
             // Mode biasa → tampil arti & skor
             meaning.textContent = DEF[e] || "(Meaning not available)";
             renderScore(e);
-            pointBadge.style.display = "inline-block"; // tampilkan pointBadge
         } else {
             // Mode turnamen → jangan tampil arti & skor
             meaning.textContent = "";
             tilesBox.innerHTML = "";
-            pointBadge.style.display = "none"; // sembunyikan pointBadge
+            pointBadge.style.display = "none";
         }
 
     } else {
-        resultText.textContent = "Not Found";
-        resultText.className = "invalid";
+        showResult(false, "Not Found");
         soundInvalid.currentTime = 0;
         soundInvalid.play();
+        // Micro-feedback gaya HIG: getaran singkat pada kartu hasil
+        const card = input.closest(".left");
+        card.classList.remove("shake");
+        void card.offsetWidth;
+        card.classList.add("shake");
         meaning.textContent = "";
         scoreBox.textContent = "";
         tilesBox.innerHTML = "";
-        pointBadge.style.display = "none"; // sembunyikan pointBadge
+        pointBadge.style.display = "none";
     }
 
     input.value = "";
@@ -147,11 +184,11 @@ function formatTime(t) {
 function updateDisplay() {
     timeAEl.textContent = formatTime(totalTimeA), timeBEl.textContent = formatTime(totalTimeB), turnTimeEl.textContent = formatTime(turnTime);
     const t = turnTime / 120 * 100;
-    turnProgress.style.width = t + "%", turnTimeEl.classList.remove("turnWarning", "turnDanger"), turnTime <= 10 && turnTime > 5 ? (turnTimeEl.classList.add("turnWarning"), turnProgress.style.background = "#ffaa00") : turnTime <= 5 ? (turnTimeEl.classList.add("turnDanger"), turnProgress.style.background = "#ff3b3b") : turnProgress.style.background = "#00ff88"
+    turnProgress.style.width = t + "%", turnTimeEl.classList.remove("turnWarning", "turnDanger"), turnTime <= 10 && turnTime > 5 ? (turnTimeEl.classList.add("turnWarning"), turnProgress.style.background = "var(--ios-orange)") : turnTime <= 5 ? (turnTimeEl.classList.add("turnDanger"), turnProgress.style.background = "var(--ios-red)") : turnProgress.style.background = "var(--ios-green)"
 }
 
 function startGame() {
-    input.disabled = !1, timerPanel.style.display = "block", document.body.classList.remove("gameOver"), updatePlayerHighlight(), timerInterval || (totalTimeA = 1500, totalTimeB = 1500, turnTime = 120, activePlayer = "A", gameRunning = !0, input.disabled = !1, document.body.classList.remove("gameOver"), updatePlayerHighlight(), updateDisplay(), timerInterval = setInterval((() => {
+    input.disabled = !1, timerPanel.style.display = "block", timerPanel.classList.add("visible"), document.body.classList.remove("gameOver"), updatePlayerHighlight(), timerInterval || (totalTimeA = 1500, totalTimeB = 1500, turnTime = 120, activePlayer = "A", gameRunning = !0, input.disabled = !1, document.body.classList.remove("gameOver"), updatePlayerHighlight(), updateDisplay(), timerInterval = setInterval((() => {
         gameRunning && ("A" === activePlayer ? totalTimeA-- : totalTimeB--, turnTime--, turnTime <= 10 && turnTime > 5 && (tickSound.playbackRate = 1, tickSound.currentTime = 0, tickSound.play()), turnTime <= 5 && turnTime > 0 && (tickSound.playbackRate = 1.5, tickSound.currentTime = 0, tickSound.play()), totalTimeA <= 0 && (buzzerSound.play(), stopGame(), input.disabled = !0, document.body.classList.add("gameOver"), alert("Pemain A kalah waktu")), totalTimeB <= 0 && (buzzerSound.play(), stopGame(), input.disabled = !0, document.body.classList.add("gameOver"), alert("Pemain B kalah waktu")), turnTime <= 0 && switchTurn(), updateDisplay())
     }), 1e3))
 }
@@ -167,7 +204,7 @@ function stopGame() {
 }
 
 function destroyGame() {
-    stopGame(), timerPanel.style.display = "none", totalTimeA = 1500, totalTimeB = 1500, turnTime = 120, activePlayer = "A", updateDisplay()
+    stopGame(), timerPanel.style.display = "none", timerPanel.classList.remove("visible"), totalTimeA = 1500, totalTimeB = 1500, turnTime = 120, activePlayer = "A", updateDisplay()
 }
 
 function updatePlayerHighlight() {
